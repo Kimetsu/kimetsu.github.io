@@ -1,1 +1,24 @@
-theme: jekyll-theme-tactile
+collections:
+  raw:
+    output: true
+    permalink: /:collection/:name
+
+  viz:
+    output: true
+    permalink: /:name
+
+defaults:
+  - scope:
+      path: ""
+      type: "raw"
+    values:
+      layout: "manga"
+  - scope:
+      path: ""
+      type: "viz"
+    values:
+      layout: "manga"
+  - scope:
+      path: ""
+    values:
+      layout: "default"
