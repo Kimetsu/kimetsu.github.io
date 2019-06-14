@@ -189,7 +189,7 @@
           pageNo = getUrlParam('page');
         }
 
-        pageNo = Math.round(pageNo/2);
+        pageNo = Math.floor((pageNo/2)+1);
 
         if (pageNo > 1) {
           $( '#bb-bookblock' ).bookblock( 'jump', pageNo );
