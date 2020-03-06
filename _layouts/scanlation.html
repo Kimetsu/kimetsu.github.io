@@ -3,12 +3,18 @@
 
 {% assign pagetitle = filename %}
 {% capture firstchar %}{{ pagetitle | slice: 0 }}{% endcapture %}
+{% capture secondchar %}{{ pagetitle | slice: 1 }}{% endcapture %}
   
 {% if firstchar == '0' %}
 {% assign pagetitle = filename | replace_first: '0', '' %}
 {% endif %}
 
-{% capture folder-number %}assets/{{page.collection}}/{{filename}}{% endcapture %}
+{% if secondchar == '0' %}
+{% assign pagetitle = pagetitle | replace_first: '0', '' %}
+{% endif %}
+
+{% capture filepath-en %}assets/{{page.collection}}/{{filename}}{% endcapture %}
+{% capture filepath-raw %}assets/{{page.collection}}/raw/{{filename}}{% endcapture %}
 
 {% capture the_collection %}{{page.collection}}{% endcapture %}
   {% if page.collection %}
@@ -35,10 +41,10 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
 
   <meta name="description" content="{{ page.name }}">
-  <meta name="author" content="Kimetsu">
-  <meta property="og:title" content="#{{pagetitle}} - {{ page.name }}" />
+  <meta name="author" content="HeroAca">
+  <meta property="og:title" content="Chapter {{pagetitle}}" />
   <meta property="og:site_name" content="Scanlation Reader"/>
-  <meta property="og:url" content="https://kimetsu.github.io"/>
+  <meta property="og:url" content="https://uncut.heroaca.my/tum"/>
   <meta property="og:description" content="Please check &amp; report any error found."/>
   <meta property="og:type" content="website" />
   <meta property="og:image" content="/assets/{{page.collection}}-thumb/{{pagetitle}}.jpg" />
@@ -47,31 +53,37 @@
 
   <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
   <link rel="apple-touch-icon" href="/assets/images/apple-touch-icon.png" />
-  <link rel="apple-touch-icon" sizes="57x57" href="/assets/images/apple-touch-icon-57x57.png" />
-  <link rel="apple-touch-icon" sizes="72x72" href="/assets/images/apple-touch-icon-72x72.png" />
-  <link rel="apple-touch-icon" sizes="76x76" href="/assets/images/apple-touch-icon-76x76.png" />
-  <link rel="apple-touch-icon" sizes="114x114" href="/assets/images/apple-touch-icon-114x114.png" />
-  <link rel="apple-touch-icon" sizes="120x120" href="/assets/images/apple-touch-icon-120x120.png" />
-  <link rel="apple-touch-icon" sizes="144x144" href="/assets/images/apple-touch-icon-144x144.png" />
-  <link rel="apple-touch-icon" sizes="152x152" href="/assets/images/apple-touch-icon-152x152.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon-180x180.png" />
+  <link rel="apple-touch-icon" sizes="57x57" href="/images/apple-touch-icon-57x57.png" />
+  <link rel="apple-touch-icon" sizes="72x72" href="/images/apple-touch-icon-72x72.png" />
+  <link rel="apple-touch-icon" sizes="76x76" href="/images/apple-touch-icon-76x76.png" />
+  <link rel="apple-touch-icon" sizes="114x114" href="/images/apple-touch-icon-114x114.png" />
+  <link rel="apple-touch-icon" sizes="120x120" href="/images/apple-touch-icon-120x120.png" />
+  <link rel="apple-touch-icon" sizes="144x144" href="/images/apple-touch-icon-144x144.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="/images/apple-touch-icon-152x152.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-180x180.png" />
 
-    <title>#{{pagetitle}} - {{ page.name }}</title>
-    <link rel="stylesheet" type="text/css" href="/assets/css/styles.css">
-    <link rel="stylesheet" type="text/css" href="/assets/css/default.css" />
-    <link rel="stylesheet" type="text/css" href="/assets/css/bookblock.css" />
-    <link rel="stylesheet" type="text/css" href="/assets/css/manga.css" />
-    <script src="/assets/js/modernizr.custom.js"></script>
+    <title>Chapter {{pagetitle}} {{ page.name }}</title>
+    <link rel="stylesheet" type="text/css" href="../assets/css/default.css" />
+    <script src="../assets/js/modernizr.custom.js"></script>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/flickity@2/dist/flickity.min.css">
 
     <style type="text/css">
 
-      .page-number {
-      	position: fixed;
-      	bottom: 0;
-      	opacity: 0.7;
-      	color: white;
-      	background-color: black;
-      	padding: 10pt;
+      .next-chapter {
+        width: 100%;
+        height: 100%;
+        padding-top: 50%;
+        font-size: 50pt;
+      }
+
+      .right-side {
+        text-align: left;
+      }
+
+      .left-side {
+        text-align: right;
       }
 
       .manga {
@@ -89,30 +101,90 @@
         justify-content: flex-start;
       }
 
-      .bb-custom-side {
-        float: right;
+      /* inherit height from parent */
+      /*.container {
+        position: relative;
+      }*/
+
+      .hidden {
+        /*display: none;*/
+        position: absolute;
+        top: -5000px;
+        transition: opacity 0.4s;
+        opacity: 0;
       }
 
-      .bb-custom-wrapper > nav a {
+      .invisible {
+        opacity: 0;
+      }
+
+      .main-carousel { 
+        height: 100%; 
+      }
+
+      .raw-carousel { 
+        height: 100%;
+      }
+
+      .carousel-cell { height: 100% }
+      .carousel-cell img { height: 100% }
+
+      /* move page dots into carousel */
+      .flickity-page-dots { bottom: 10px; }
+
+      .flickity-button {
         opacity: 0.5;
       }
 
-      .left-bar {
-        left: 0;
+      /* fade in image when loaded */
+      .carousel-cell-image {
+        transition: opacity 0.4s;
+        opacity: 0;
       }
 
-      .right-bar {
-        right: 0;
+      .carousel-cell-image.flickity-lazyloaded,
+      .carousel-cell-image.flickity-lazyerror {
+        opacity: 1;
       }
 
-      .page-turner {
-        width: 15%;
-        height: 110%;
-        /*background-color: red;*/
-        opacity: 0.2;
+      .raw-button {
         position: fixed;
-        top: -5%;
+        top: 20px;
+        right: 30px;
+        background-color: #f8f8f8;
+        height: 40px;
+        width: 50px;
+        padding: 10px 15px;
         z-index: 1000;
+        opacity: 0.5;
+        transition: opacity 0.4s;
+      }
+
+      .raw-button:hover {
+        opacity: 1.0;
+      }
+
+      .raw-circle {
+        background-color: #C70025;
+        border-radius: 25px;
+        height: 20px;
+        width: 20px;
+      }
+
+      .nav-button {
+        font-size: 20px;
+        text-align: center;
+        padding-bottom: 5px;
+      }
+
+      .next-button {
+        background-color: red;
+        color: white;
+      }
+
+      .previous-button {
+        background-color: black;
+        color: white;
       }
 
     </style>
@@ -120,48 +192,71 @@
   <body>
   	<div class="container">
       {{ content }}
-      <div class="bb-nav-prev right-bar page-turner"></div>
-      <dir class="bb-nav-next left-bar page-turner"></dir>
-  		<div class="bb-custom-wrapper">
-  			<div id="bb-bookblock" class="bb-bookblock">
+  		<a class="raw-button"><div class="raw-circle"></div></a>
+      <div class="main-carousel">
 
-  				{% for file in site.static_files %}
-  {% if file.path contains folder-number %}
-    {% if file.extname == '.jpg' or 
-      file.extname == '.jpeg' or 
-      file.extname == '.JPG' or 
-      file.extname == '.JPEG' or 
-      file.extname == '.png' %}
+			{% for file in site.static_files %}
+        {% if file.path contains filepath-en %}
+          {% if file.extname == '.jpg' or 
+            file.extname == '.jpeg' or 
+            file.extname == '.JPG' or 
+            file.extname == '.JPEG' or 
+            file.extname == '.png' %}
 
-      {% capture thecycle %}{% cycle 'odd', 'even' %}{% endcapture %}
+          {% assign filenameparts = file.path | split: "/" %}
+          {% assign filename = filenameparts | last | replace: file.extname,"" %}
 
-      {% assign filenameparts = file.path | split: "/" %}
-      {% assign filename = filenameparts | last | replace: file.extname,"" %}
-
-      {% if thecycle == 'odd' %}
-          <div class="bb-item">
-            <div class="bb-custom-side right">
-              <div class="page-number">{{ filename }}</div>
-              <img class="manga" src="{{ file.path }}" alt="{{ filename }}"/>
-            </div>
-            {% endif %}
-
-            {% if thecycle == 'even' %}
-            <div class="bb-custom-side left">
-              <div class="page-number">{{ filename }}</div>
-              <img class="manga" src="{{ file.path }}" alt="{{ filename }}"/>
-            </div>
+          <div class="carousel-cell">
+            <img class="carousel-cell-image" src="https://heroaca.github.io/assets/vigilantes/60/00.jpg" data-flickity-lazyload="{{ file.path }}" />
           </div>
+          {% endif %}
         {% endif %}
-    {% endif %}
-  {% endif %}
-{% endfor %}
-		</div>
+      {% endfor %}
+
+          <div class="carousel-cell">
+            {% if nexturl %}
+            <a href="{{nexturl}}" class="nav-button next-button">次の話</a><br><br>
+            {% endif %}
+            {% if prevurl %}
+            <a href="{{prevurl}}" class="nav-button previous-button">前の話</a>
+            {% endif %}
+          </div>
       </div>
+      <div class="raw-carousel">
+
+      {% for file in site.static_files %}
+        {% if file.path contains filepath-raw %}
+          {% if file.extname == '.jpg' or 
+            file.extname == '.jpeg' or 
+            file.extname == '.JPG' or 
+            file.extname == '.JPEG' or 
+            file.extname == '.png' %}
+
+          {% assign filenameparts = file.path | split: "/" %}
+          {% assign filename = filenameparts | last | replace: file.extname,"" %}
+
+          <div class="carousel-cell nav-button">
+            <img class="carousel-cell-image" src="https://heroaca.github.io/assets/vigilantes/60/00.jpg" data-flickity-lazyload="{{ file.path }}" />
+          </div>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+
+          <div class="carousel-cell">
+            {% if nexturl %}
+            <a href="{{nexturl}}" class="nav-button next-button">次の話</a><br><br>
+            {% endif %}
+            {% if prevurl %}
+            <a href="{{prevurl}}" class="nav-button previous-button">前の話</a>
+            {% endif %}
+          </div>
+      </div>
+		
     </div><!-- /container -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-    <script src="/assets/js/jquerypp.custom.js"></script>
-    <script src="/assets/js/jquery.bookblock.min.js"></script>
+    <!-- JavaScript -->
+    <script src="https://unpkg.com/flickity@2/dist/flickity.pkgd.min.js"></script>
+    <script src="https://unpkg.com/flickity-sync@2/flickity-sync.js"></script>
     <script>
       function getUrlVars() {
         var vars = {};
@@ -181,115 +276,169 @@
 
       function getPage() {
         var pageNo = 1;
-        if (getUrlParam('p') != 1) {
+        var lastPage = "";
+
+        if (getUrlParam('p') != 0) {
           pageNo = getUrlParam('p');
+          lastPage = getUrlParam('p');
         }
 
-        if (getUrlParam('page') != 1) {
+        if (getUrlParam('page') != 0) {
           pageNo = getUrlParam('page');
+          lastPage = getUrlParam('page');
         }
 
-        pageNo = Math.floor((pageNo/2)+1);
+        if (lastPage == 'last') {
+          $('.main-carousel').flickity( 'select', $('.main-carousel').flickity().data('flickity').slides.length - 1, false, true );
+        } else {
+          pageNo = Math.floor((pageNo/2));
+        }
 
         if (pageNo > 1) {
-          $( '#bb-bookblock' ).bookblock( 'jump', pageNo );
+          // $( '#bb-bookblock' ).bookblock( 'jump', pageNo );
+          $('.main-carousel').flickity( 'select', pageNo, false, true );
         }
         
       }
 
+      // from http://www.sberry.me/articles/javascript-event-throttling-debouncing
+      function throttle(fn, delay) {
+        var allowSample = true;
+
+        return function(e) {
+          if (allowSample) {
+            allowSample = false;
+            setTimeout(function() { allowSample = true; }, delay);
+            fn(e);
+          }
+        };
+      }
+
 
       var Page = (function() {
-        
-        var config = {
-            $bookBlock : $( '#bb-bookblock' ),
-            $navNext : $( '.bb-nav-next' ),
-            $navPrev : $( '.bb-nav-prev' ),
-            $navFirst : $( '#bb-nav-first' ),
-            $navLast : $( '#bb-nav-last' )
-          },
-          init = function() {
-            config.$bookBlock.bookblock( {
-              speed : 600, //600,
-              direction: 'rtl',
-              shadowSides : 0, //0.8,
-              shadowFlip : 0.4, //0.4
-              onEndFlip : function(old, page, isLimit) { 
-                if (isLimit && page == 0) {
-                  location.href = "{{prevurl}}";
-                }
-                if (isLimit && page != 0) {
-                  location.href = "{{nexturl}}";
-                }
-              }
-            } );
+
+        $('.main-carousel').flickity({
+          // options
+          cellAlign: 'left',
+          lazyLoad: 2,
+          rightToLeft: true,
+          contain: true,
+          groupCells: true,
+          setGallerySize: false,
+          pageDots: false,
+          // wrapAround: true,
+          // freeScroll: true,
+          imagesLoaded: true,
+          sync: '.raw-carousel'
+        }).focus();
+
+        $('.raw-carousel').flickity({
+          // options
+          cellAlign: 'left',
+          lazyLoad: 2,
+          rightToLeft: true,
+          contain: true,
+          groupCells: true,
+          setGallerySize: false,
+          pageDots: false,
+          // wrapAround: true,
+          // freeScroll: true,
+          imagesLoaded: true
+        });
+
+        // init Flickity with jQuery
+        var $carousel = $('.main-carousel')
+        var $carousel2 = $('.raw-carousel')
+        var mainCarousel = document.querySelector('.main-carousel');
+        var rawCarousel = document.querySelector('.raw-carousel');
+
+        // get instance
+        var flkty = $carousel.flickity().data('flickity');
+        var flkty2 = $carousel2.flickity().data('flickity');
+        // access properties
+        console.log( flkty.selectedIndex, flkty.selectedElement );
+        var selectedPage = flkty.selectedIndex;
+
+        var init = function() {
             initEvents();
             getPage();
+            rawCarousel.classList.add('hidden');
           },
           initEvents = function() {
             
-            var $slides = config.$bookBlock.children();
-
-            // add navigation events
-            config.$navNext.on( 'click touchstart', function() {
-              config.$bookBlock.bookblock( 'next' );
-              return false;
-            } );
-
-            config.$navPrev.on( 'click touchstart', function() {
-              config.$bookBlock.bookblock( 'prev' );
-              return false;
-            } );
-
-            config.$navFirst.on( 'click touchstart', function() {
-              config.$bookBlock.bookblock( 'first' );
-              return false;
-            } );
-
-            config.$navLast.on( 'click touchstart', function() {
-              config.$bookBlock.bookblock( 'last' );
-              return false;
-            } );
-            
-            // add swipe events
-            $slides.on( {
-              'swipeleft' : function( event ) {
-                config.$bookBlock.bookblock( 'prev' );
-                return false;
-              },
-              'swiperight' : function( event ) {
-                config.$bookBlock.bookblock( 'next' );
-                return false;
+            document.querySelector('.raw-button').addEventListener('click', throttle(function(ev) {
+              if (mainCarousel.classList.contains('hidden')) {
+                $carousel.flickity( 'select', flkty2.selectedIndex, false );
+                mainCarousel.classList.remove('hidden');
+                rawCarousel.classList.add('hidden');
+                $carousel.flickity().focus();
+              } else {
+                $carousel2.flickity( 'select', flkty.selectedIndex, false );
+                mainCarousel.classList.add('hidden');
+                rawCarousel.classList.remove('hidden');
+                $carousel2.flickity().focus();
               }
-            } );
+            }));
 
             // add keyboard events
-            $( document ).keydown( function(e) {
+            $( document ).keyup( function(e) {
               var keyCode = e.keyCode || e.which,
                 arrow = {
                   left : 37,
                   up : 38,
                   right : 39,
-                  down : 40
+                  down : 40,
+                  d : 68
                 };
 
               switch (keyCode) {
                 case arrow.left:
-                  config.$bookBlock.bookblock( 'next' );
+                  // $('.main-carousel').flickity('next');
+                  // $('.raw-carousel').flickity('next');
+                  if (flkty.selectedIndex == flkty.slides.length - 1 && selectedPage == flkty.selectedIndex) {
+                    {% if nexturl %}
+                    location.href = "{{nexturl}}";
+                    {% endif %}
+                  }
+                  selectedPage = flkty.selectedIndex;
                   break;
                 case arrow.right:
-                  config.$bookBlock.bookblock( 'prev' );
+                  // $('.main-carousel').flickity('previous');
+                  // $('.raw-carousel').flickity('previous');
+                  if (flkty.selectedIndex == 0 && selectedPage == 0) {
+                    {% if prevurl %}
+                    location.href = "{{prevurl}}?page=last";
+                    {% endif %}
+                  }
+                  selectedPage = flkty.selectedIndex;
                   break;
                 case arrow.up:
-                  // config.$bookBlock.bookblock( 'first' );
                   {% if prevurl %}
                   location.href = "{{prevurl}}";
                   {% endif %}
                   break;
                 case arrow.down:
-                  // config.$bookBlock.bookblock( 'last' );
                   {% if nexturl %}
                   location.href = "{{nexturl}}";
                   {% endif %}
+                  break;
+                case arrow.d:
+
+                  // get instance
+                  // flkty = $carousel.flickity().data('flickity');
+                  // flkty2 = $carousel2.flickity().data('flickity');
+
+                  if (mainCarousel.classList.contains('hidden')) {
+                    $carousel.flickity( 'select', flkty2.selectedIndex, false );
+                    mainCarousel.classList.remove('hidden');
+                    rawCarousel.classList.add('hidden');
+                    $carousel.flickity().focus();
+                  } else {
+                    $carousel2.flickity( 'select', flkty.selectedIndex, false );
+                    mainCarousel.classList.add('hidden');
+                    rawCarousel.classList.remove('hidden');
+                    $carousel2.flickity().focus();
+                  }
                   break;
               }
             } );
